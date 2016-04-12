@@ -1,3 +1,5 @@
+package learning;
+
 public class Human {
 
     String name;

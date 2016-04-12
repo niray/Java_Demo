@@ -1,3 +1,5 @@
+package learning;
+
 /**
  * Created by Mac on 16/4/12.
  */

@@ -1,4 +1,4 @@
-import okhttp3.internal.http.OkHeaders;
+package learning;
 
 import javax.swing.*;
 import java.awt.*;
@@ -26,12 +26,17 @@ public class CommonComponet {
     TextField name = new TextField(50);
 
 
-
     public void init() {
         colorChooser.add("红色");
         colorChooser.add("绿色");
         colorChooser.add("蓝色");
 
+        colorList.add("红色1");
+        colorList.add("绿色2");
+        colorList.add("蓝色3");
+        colorList.add("红色1");
+        colorList.add("绿色2");
+        colorList.add("蓝色3");
         colorList.add("红色1");
         colorList.add("绿色2");
         colorList.add("蓝色3");

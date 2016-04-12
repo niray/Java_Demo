@@ -1,3 +1,5 @@
+package learning;
+
 import java.awt.*;
 
 /**
@@ -25,7 +27,7 @@ public class RoundCircle extends Canvas {
             }
             g.clearRect(0, 0, getSize().width, getSize().height);
 
-            g.drawOval((int)x,(int)y,CIRCLE_RADIUS,CIRCLE_RADIUS);
+            g.drawOval((int) x, (int) y, CIRCLE_RADIUS, CIRCLE_RADIUS);
             angle = angle + SHOW_CYCLE * 2 * PI / ROUND_CYCLE;
         }
     }

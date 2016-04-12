@@ -1,3 +1,5 @@
+package learning;
+
 import java.util.InputMismatchException;
 import java.util.Random;
 import java.util.Scanner;
@@ -80,7 +82,7 @@ public class GN {
                     }
                     System.out.println();
                 }
-                System.out.println("恭喜你，猜对了！一共猜了" + time + "次,答案是:。" + rdn[0] + "" + rdn[1] + "" + rdn[2] + "" + rdn[3]);
+                System.out.println("恭喜你，猜对了！一共猜了" + time + "次,答案是:" + rdn[0] + "" + rdn[1] + "" + rdn[2] + "" + rdn[3]);
                 break;
             }
         }

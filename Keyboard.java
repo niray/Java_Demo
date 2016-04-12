@@ -1,5 +1,4 @@
 import java.applet.Applet;
-import java.awt.*;
 
 /**
  * Created by Mac on 16/4/12.
@@ -23,6 +22,6 @@ public class Keyboard extends Applet {
 
         text = "";
         repaint();
-        return  true;
+        return true;
     }
 }

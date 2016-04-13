@@ -1,5 +1,7 @@
 package breadTrip2FunJoy;
 
+import org.apache.http.util.TextUtils;
+
 import java.io.*;
 import java.util.Enumeration;
 import java.util.Properties;
@@ -43,6 +45,9 @@ public class PropUtil {
 
     //写入properties信息
     public static void writeProperties(String parameterName, String parameterValue) {
+        if (TextUtils.isEmpty(parameterName) || TextUtils.isEmpty(parameterValue)) {
+            return;
+        }
         Properties prop = new Properties();
         try {
             InputStream fis = new FileInputStream(filePath);

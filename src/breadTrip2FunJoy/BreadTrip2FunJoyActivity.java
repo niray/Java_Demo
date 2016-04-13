@@ -4,10 +4,6 @@ package breadTrip2FunJoy;
 import breadTrip2FunJoy.net.*;
 import breadTrip2FunJoy.net.download.DownLoadManager;
 import breadTrip2FunJoy.net.download.DownloadTask;
-import org.apache.http.HttpException;
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpRequestInterceptor;
-import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.TextUtils;
 
 import javax.swing.*;
@@ -22,28 +18,26 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.List;
 
-import static com.sun.imageio.plugins.jpeg.JPEG.version;
-
 public class BreadTrip2FunJoyActivity {
 
     private static final String DOWNLOAD_IMG_CODE = "travels_img";
 
-    DownLoadManager downloader = new DownLoadManager();
-    JFrame frame = new JFrame("面包侣行搬运工");
-    JTextField et_bread_id = new JTextField(10);
-    JTextField et_topic_id = new JTextField(10);
-    JTextField et_index = new JTextField(10);
-    JButton btn_go = new JButton("开始");
-    JButton btn_goon = new JButton("断点续传");
-    JTextField tf_status = new JTextField(16);
-    JTextField tf_save_url = new JTextField(10);
-    JList colorList = new JList();
-    JTextField tf_login_acc = new JTextField(10);
-    JTextField tf_login_pwd = new JTextField(10);
-    JTextField tf_nick = new JTextField(10);
-    JTextField tf_lequ_id = new JTextField(10);
-    JScrollPane jScrollPane = new JScrollPane(colorList);
-    Vector listModel = new Vector();
+    private DownLoadManager downloader = new DownLoadManager();
+    private JFrame frame = new JFrame("面包侣行搬运工");
+    private JTextField et_bread_id = new JTextField(10);
+    private JTextField et_topic_id = new JTextField(10);
+    private JTextField et_index = new JTextField(10);
+    private JButton btn_go = new JButton("开始");
+    private JButton btn_goon = new JButton("断点续传");
+    private JTextField tf_status = new JTextField(16);
+    private JTextField tf_save_url = new JTextField(10);
+    private JList colorList = new JList();
+    private JTextField tf_login_acc = new JTextField(10);
+    private JPasswordField tf_login_pwd = new JPasswordField(10);
+    private JTextField tf_nick = new JTextField(10);
+    private JTextField tf_lequ_id = new JTextField(10);
+    private JScrollPane jScrollPane = new JScrollPane(colorList);
+    private Vector listModel = new Vector();
     private BreadTripBean breadTripBean;
     private String topicId;
     private List<TravelContentBean> contentBeanList = new ArrayList<>();
@@ -162,6 +156,7 @@ public class BreadTrip2FunJoyActivity {
 
         JPanel pwdPanel = new JPanel();
         JLabel tv_pwd = new JLabel("密码:");
+
         pwdPanel.add(tv_pwd);
         pwdPanel.add(tf_login_pwd);
         box_left.add(pwdPanel);
@@ -214,7 +209,6 @@ public class BreadTrip2FunJoyActivity {
         tf_token.setText(PropUtil.readValue("token"));
         tf_save_url.setText(PropUtil.readValue("path"));
 
-        initHeader();
 
         btn_go.addActionListener(new ActionListener() {
             @Override
@@ -236,23 +230,22 @@ public class BreadTrip2FunJoyActivity {
                 System.exit(0);
             }
         });
+
+        initHeader();
     }
 
     private void initHeader() {
-        HttpManager.getHttpClient().addRequestInterceptor(new HttpRequestInterceptor() {
-            @Override
-            public void process(HttpRequest request, HttpContext httpContext) throws HttpException, IOException {
-                Map<String, String> map = new HashMap<String, String>();
-                map.put("response-type", "text/json");
-                map.put("request-source", "3");
-                map.put("version", version);
-                if (!TextUtils.isEmpty(tf_token.getText())) {
-                    map.put("request-token", tf_token.getText());
-                }
-
-                for (Map.Entry<String, String> entry : map.entrySet()) {
-                    request.addHeader(entry.getKey(), entry.getValue());
-                }
+        HttpManager.getHttpClient().addRequestInterceptor((request, httpContext) -> {
+            Map<String, String> map = new HashMap<>();
+            map.put("response-type", "text/json");
+            map.put("request-source", "3");
+            map.put("version", "2.0");
+            if (!TextUtils.isEmpty(tf_token.getText())) {
+                map.put("request-token", tf_token.getText());
+            }
+            request.removeHeaders("request-token");
+            for (Map.Entry<String, String> entry : map.entrySet()) {
+                request.addHeader(entry.getKey(), entry.getValue());
             }
         });
     }

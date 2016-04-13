@@ -316,7 +316,7 @@ public class DhNet {
                         long end = System.currentTimeMillis();
                         lastSpeed = (int) ((end - begin) / 1000);
 
-                        System.out.println("DhNet" + DhNet.this.url + "  method: " + method + "\n params: " + params + "\n result: " + NetUtil.decodeUnicode(result) + "\n");
+                        System.out.println("DhNet  " + DhNet.this.url + "  method: " + method + "\n params: " + params + "\n result: " + NetUtil.decodeUnicode(result) + "\n");
 
                         Response response = new Response(result);
                         response.isCache(false);
@@ -365,7 +365,7 @@ public class DhNet {
         lastSpeed = HttpManager.DEFAULT_SOCKET_TIMEOUT + 1;
         // 网络访问出错
         if (e instanceof UnknownHostException) {
-            System.out.println("DhNet" + "域名不对可能是没有配置网络权限");
+            System.out.println("DhNet  " + "域名不对可能是没有配置网络权限");
         }
         boolean isFromCache = false;
         // 同时提示网络问题
@@ -479,7 +479,7 @@ public class DhNet {
                         myresponse.addBundle("proccess", 100);
                         DhNet.this.task.transfer(myresponse, NetTask.TRANSFER_DOUI);
 
-                        System.out.println("DhNet" + DhNet.this.url + "  method: " + method + "\n params: " + params + "\n result: " + NetUtil.decodeUnicode(result));
+                        System.out.println("DhNet  " + DhNet.this.url + "  method: " + method + "\n params: " + params + "\n result: " + NetUtil.decodeUnicode(result));
 
                     }
                 } catch (Exception e) {
@@ -513,7 +513,7 @@ public class DhNet {
      */
     public void upload(final String name, final File file, NetTask task) {
         if (file == null) return;
-        System.out.println("DhNet" + name + ":" + file.getAbsolutePath() + "  isExists:" + file.exists());
+        System.out.println("DhNet  " + name + ":" + file.getAbsolutePath() + "  isExists:" + file.exists());
         addFile(name, file);
         upload(task);
     }

@@ -14,6 +14,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -26,79 +28,217 @@ public class BreadTrip2FunJoyActivity {
 
     private static final String DOWNLOAD_IMG_CODE = "travels_img";
 
-    TextField et_id = new TextField(50);
-    TextField et_topic_id = new TextField(50);
-    TextField et_index = new TextField(50);
-    JLabel tv_log = new JLabel();
-    JLabel tv_process = new JLabel();
-
-    JButton btn_go = new JButton("Go");
-    JButton btn_goon = new JButton("Go On");
-
-
     DownLoadManager downloader = new DownLoadManager();
-    Frame frame = new Frame("面包侣行搬运工");
+    JFrame frame = new JFrame("面包侣行搬运工");
+    JTextField et_bread_id = new JTextField(10);
+    JTextField et_topic_id = new JTextField(10);
+    JTextField et_index = new JTextField(10);
+    JButton btn_go = new JButton("开始");
+    JButton btn_goon = new JButton("断点续传");
+    JTextField tf_status = new JTextField(16);
+    JTextField tf_save_url = new JTextField(10);
+    JList colorList = new JList();
+    JTextField tf_login_acc = new JTextField(10);
+    JTextField tf_login_pwd = new JTextField(10);
+    JTextField tf_nick = new JTextField(10);
+    JTextField tf_lequ_id = new JTextField(10);
+    JScrollPane jScrollPane = new JScrollPane(colorList);
+    Vector listModel = new Vector();
     private BreadTripBean breadTripBean;
     private String topicId;
     private List<TravelContentBean> contentBeanList = new ArrayList<>();
     private int index = 0;
     private String ids = "";
     private boolean start;
+    private JFileChooser fc = new JFileChooser();
+    private JTextField tf_token = new JTextField(10);
+    private int flag;
 
     public static void main(String[] args) {
         BreadTrip2FunJoyActivity breadTrip2FunJoyActivity = new BreadTrip2FunJoyActivity();
         breadTrip2FunJoyActivity.onCreate();
     }
 
-
     public void onCreate() {
-        initHeader("");
-        getToken();
+
+        Box box_left = Box.createVerticalBox();
+        //面包Id相关UIPanel
+        JPanel breadIdPanel = new JPanel();
+        JLabel tv_bread_id = new JLabel("面包ID:");
+        breadIdPanel.add(tv_bread_id);
+        breadIdPanel.add(et_bread_id);
+        breadIdPanel.add(btn_go);
+        box_left.add(breadIdPanel);
+
+        //乐去Id相关UIPanel
+        JPanel topicIdPanel = new JPanel();
+        JLabel tv_lequ_id = new JLabel("乐去ID:");
+        tf_lequ_id.setText("19");
+        JButton btn_open = new JButton("查看");
+        topicIdPanel.add(tv_lequ_id);
+        topicIdPanel.add(tf_lequ_id);
+        topicIdPanel.add(btn_open);
+        btn_open.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+
+                //判断当前系统是否支持Java AWT Desktop扩展
+                if (Desktop.isDesktopSupported()) {
+                    try {
+                        //创建一个URI实例,注意不是URL
+
+                        //http://www.huway.com/travels/topicId
+                        java.net.URI uri = java.net.URI.create("http://www.huway.com/travels/" + tf_lequ_id.getText());
+                        //获取当前系统桌面扩展
+                        Desktop dp = Desktop.getDesktop();
+                        //判断系统桌面是否支持要执行的功能
+                        if (dp.isSupported(Desktop.Action.BROWSE)) {
+                            //获取系统默认浏览器打开链接
+                            dp.browse(uri);
+                        }
+                    } catch (NullPointerException | IOException ex) {
+                        //此为uri为空时抛出异常
+                        ex.printStackTrace();
+                    }
+                }
+            }
+        });
+        box_left.add(topicIdPanel);
+
+        //保存地址相关UIPanel
+        JPanel saveUrlPanel = new JPanel();
+        JLabel tv_save_url = new JLabel("缓存地址:");
+        JButton btn_save = new JButton("选择地址");
+
+        btn_save.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);//只能选择目录
+                String path = null;
+                File f = null;
+                try {
+                    flag = fc.showOpenDialog(null);
+                } catch (HeadlessException head) {
+                    System.out.println("Open File Dialog ERROR!");
+                }
+                if (flag == JFileChooser.APPROVE_OPTION) {
+                    //获得该文件
+                    f = fc.getSelectedFile();
+                    path = f.getPath();
+                    tf_save_url.setText(path);
+                    PropUtil.writeProperties("path", tf_save_url.getText());
+
+                }
+            }
+        });
+
+        saveUrlPanel.add(tv_save_url);
+        saveUrlPanel.add(tf_save_url);
+        saveUrlPanel.add(btn_save);
+        box_left.add(saveUrlPanel);
 
 
-        Panel bottom = new Panel();
-        bottom.add(et_id);
-        bottom.add(btn_go);
-        frame.add(bottom, BorderLayout.SOUTH);
+        //登陆及Token 相关
+        JPanel tokenPanel = new JPanel();
+        JLabel tv_token = new JLabel("Token:");
+        tokenPanel.add(tv_token);
+        tokenPanel.add(tf_token);
+        box_left.add(tokenPanel);
 
-        Panel checkPanel = new Panel();
-        checkPanel.add(et_topic_id);
-        checkPanel.add(et_index);
-        checkPanel.add(tv_log);
-        checkPanel.add(tv_process);
+        JPanel nickPanel = new JPanel();
+        JLabel tv_nick = new JLabel("昵称:");
 
-        Box topLeft = Box.createVerticalBox();
-        topLeft.add(btn_goon);
-        topLeft.add(checkPanel);
+        nickPanel.add(tv_nick);
+        nickPanel.add(tf_nick);
+        box_left.add(nickPanel);
+
+
+        JPanel loginPanel = new JPanel();
+        JLabel tv_acc = new JLabel("账号:");
+        loginPanel.add(tv_acc);
+        loginPanel.add(tf_login_acc);
+        box_left.add(loginPanel);
+
+
+        JPanel pwdPanel = new JPanel();
+        JLabel tv_pwd = new JLabel("密码:");
+        pwdPanel.add(tv_pwd);
+        pwdPanel.add(tf_login_pwd);
+        box_left.add(pwdPanel);
+
+
+        JButton btn_login = new JButton("登陆");
+        btn_login.addActionListener(e -> getToken());
+        box_left.add(btn_login);
 
         Box top = Box.createHorizontalBox();
-        top.add(topLeft);
-        //top.add(colorList);
+        top.add(box_left);
 
-        frame.add(top);
+        Box box_right = Box.createVerticalBox();
+
+        JLabel tv_log = new JLabel("日志:");
+        box_right.add(tv_log);
+
+        colorList.setSize(500, 550);
+        jScrollPane.setSize(100, 100);
+
+        //  box_right.add(colorList);
+        box_right.add(jScrollPane);
+
+        JPanel resumePanel = new JPanel();
+        JLabel tv_status = new JLabel("总体进度:");
+
+        resumePanel.add(tv_status);
+        resumePanel.add(tf_status);
+        resumePanel.add(btn_goon);
+        box_right.add(resumePanel);
+
+
+        frame.setSize(800, 600);
+
+        frame.add(box_left, BorderLayout.WEST);
+        frame.add(box_right, BorderLayout.EAST);
         frame.pack();
         frame.setVisible(true);
 
 
-        et_id.setText("2387991298");
-        tv_log.setText("日志:");
+        et_bread_id.setText("2387991298");
 
+
+        //  tf_login_acc.setText("huway");
+        // tf_login_pwd.setText("72@huway");
+
+        tf_login_acc.setText(PropUtil.readValue("acc"));
+        tf_login_pwd.setText(PropUtil.readValue("pwd"));
+        tf_nick.setText(PropUtil.readValue("nick"));
+        tf_token.setText(PropUtil.readValue("token"));
+        tf_save_url.setText(PropUtil.readValue("path"));
+
+        initHeader();
 
         btn_go.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                getBreadTripBean(et_id.getText().toString());
+                getBreadTripBean(et_bread_id.getText().toString());
             }
         });
+
         btn_goon.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 toResume();
             }
         });
+
+        frame.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                System.exit(0);
+            }
+        });
     }
 
-    private void initHeader(final String token) {
+    private void initHeader() {
         HttpManager.getHttpClient().addRequestInterceptor(new HttpRequestInterceptor() {
             @Override
             public void process(HttpRequest request, HttpContext httpContext) throws HttpException, IOException {
@@ -106,8 +246,8 @@ public class BreadTrip2FunJoyActivity {
                 map.put("response-type", "text/json");
                 map.put("request-source", "3");
                 map.put("version", version);
-                if (!TextUtils.isEmpty(token)) {
-                    map.put("request-token", token);
+                if (!TextUtils.isEmpty(tf_token.getText())) {
+                    map.put("request-token", tf_token.getText());
                 }
 
                 for (Map.Entry<String, String> entry : map.entrySet()) {
@@ -118,6 +258,7 @@ public class BreadTrip2FunJoyActivity {
     }
 
     public void toResume() {
+        if (index == 0) return;
         toUploadImg(contentBeanList.get(index).getImages(), false);
     }
 
@@ -151,14 +292,25 @@ public class BreadTrip2FunJoyActivity {
 
     private void getToken() {
         DhNet net = new DhNet(API.User.login);
-        net.addParam("username", "13771925115");
-        net.addParam("password", "changer");
+        net.addParam("username", tf_login_acc.getText());
+        net.addParam("password", tf_login_pwd.getText());
         net.doPost(new NetTask() {
             @Override
             public void doInUI(Response response, Integer transfer) {
                 super.doInUI(response, transfer);
                 String token = JSONUtil.getString(response.jSONFrom("userInfo"), "token");
-                initHeader(token);
+                String nickName = JSONUtil.getString(response.jSONFrom("userInfo"), "nickname");
+
+                PropUtil.writeProperties("acc", tf_login_acc.getText());
+                PropUtil.writeProperties("pwd", tf_login_pwd.getText());
+                PropUtil.writeProperties("nick", nickName);
+                PropUtil.writeProperties("token", token);
+
+                tf_nick.setText(nickName);
+                tf_token.setText(token);
+
+                addLog(nickName + " 登陆成功");
+                initHeader();
             }
         });
     }
@@ -168,13 +320,13 @@ public class BreadTrip2FunJoyActivity {
         SimpleDateFormat sdf1 = new SimpleDateFormat("HH:mm:ss");
         String str1 = sdf1.format(date1);
         log(msg);
-        tv_log.setText(tv_log.getText().toString() + "\n " + str1 + " : " + msg);
-//        sv_log.post(new Runnable() {
-//            @Override
-//            public void run() {
-//                sv_log.fullScroll(ScrollView.FOCUS_DOWN);
-//            }
-//        });
+        listModel.addElement(str1 + " : " + msg);
+        colorList.setListData(listModel);
+
+        Point p = colorList.indexToLocation(listModel.size() - 1);
+        JScrollBar jScrollBar = jScrollPane.getVerticalScrollBar();//获得垂直滚动条
+        jScrollBar.setValue(p.y);//设置垂直滚动条位置
+
     }
 
     public void onCreateEvent(String title, String district, String imgId) {
@@ -325,7 +477,7 @@ public class BreadTrip2FunJoyActivity {
                 if (response.isSuccess()) {
                     addLog("搬运成功");
                     //http://www.huway.com/travels/topicId
-
+                    tf_lequ_id.setText(topicId);
                     start = false;
                 } else {
                     showToast(response.getMsg());
@@ -349,7 +501,7 @@ public class BreadTrip2FunJoyActivity {
     }
 
     private void setLog(String msg) {
-        tv_process.setText("总体进度:" + (index) + "/" + contentBeanList.size() + msg);
+        tf_status.setText((index) + "/" + contentBeanList.size() + msg);
     }
 
     private void uploadPic(final File imgFile, final boolean isCover) {

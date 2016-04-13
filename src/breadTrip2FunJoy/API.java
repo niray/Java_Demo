@@ -29,7 +29,7 @@ public class API {
     /**
      * 基地址
      */
-    public static String BASE_SERVER_URL = "http://api.huway.com/";
+    public static String BASE_SERVER_URL = "https://api.huway.com/";
     /**
      * 基地址
      */

@@ -1,10 +1,22 @@
 package breadTrip2FunJoy;
 
 
+import breadTrip2FunJoy.bean.BreadTripBean;
+import breadTrip2FunJoy.bean.TravelContentBean;
+import breadTrip2FunJoy.bean.TravelsHeaderBean;
 import breadTrip2FunJoy.net.*;
 import breadTrip2FunJoy.net.download.DownLoadManager;
 import breadTrip2FunJoy.net.download.DownloadTask;
+import breadTrip2FunJoy.utils.API;
+import breadTrip2FunJoy.utils.PropUtil;
 import org.apache.http.util.TextUtils;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import us.codecraft.webmagic.Page;
+import us.codecraft.webmagic.Site;
+import us.codecraft.webmagic.Spider;
+import us.codecraft.webmagic.pipeline.JsonFilePipeline;
+import us.codecraft.webmagic.processor.PageProcessor;
 
 import javax.swing.*;
 import java.awt.*;
@@ -18,16 +30,19 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.List;
 
-public class BreadTrip2FunJoyActivity {
+public class BreadTrip2FunJoyActivity implements PageProcessor {
 
     private static final String DOWNLOAD_IMG_CODE = "travels_img";
 
     private DownLoadManager downloader = new DownLoadManager();
-    private JFrame frame = new JFrame("面包侣行搬运工");
+    private JFrame frame = new JFrame("乐去游记搬运工");
     private JTextField et_bread_id = new JTextField(10);
+    private JTextField et_huway_id = new JTextField(5);
+    private JTextField et_huway_place = new JTextField(5);
     private JTextField et_topic_id = new JTextField(10);
     private JTextField et_index = new JTextField(10);
-    private JButton btn_go = new JButton("开始");
+    private JButton btn_go = new JButton("B开始");
+    private JButton btn_huway_go = new JButton("H开始");
     private JButton btn_goon = new JButton("断点续传");
     private JTextField tf_status = new JTextField(16);
     private JTextField tf_save_url = new JTextField(10);
@@ -38,15 +53,15 @@ public class BreadTrip2FunJoyActivity {
     private JTextField tf_lequ_id = new JTextField(10);
     private JScrollPane jScrollPane = new JScrollPane(colorList);
     private Vector listModel = new Vector();
-    private BreadTripBean breadTripBean;
     private String topicId;
+    private BreadTripBean breadTripBean;
     private List<TravelContentBean> contentBeanList = new ArrayList<>();
     private int index = 0;
     private String ids = "";
-    private boolean start;
     private JFileChooser fc = new JFileChooser();
     private JTextField tf_token = new JTextField(10);
     private int flag;
+    private Site site = Site.me().setUserAgent("Mozilla/5.0 (iPhone; CPU iPhone OS 9_1 like Mac OS X) AppleWebKit/601.1.46 (KHTML, like Gecko) Version/9.0 Mobile/13B143 Safari/601.1");
 
     public static void main(String[] args) {
         BreadTrip2FunJoyActivity breadTrip2FunJoyActivity = new BreadTrip2FunJoyActivity();
@@ -54,6 +69,12 @@ public class BreadTrip2FunJoyActivity {
     }
 
     public void onCreate() {
+        PropUtil.createPropertiesFile();
+        initView();
+        initHeader();
+    }
+
+    private void initView() {
 
         Box box_left = Box.createVerticalBox();
         //面包Id相关UIPanel
@@ -63,6 +84,17 @@ public class BreadTrip2FunJoyActivity {
         breadIdPanel.add(et_bread_id);
         breadIdPanel.add(btn_go);
         box_left.add(breadIdPanel);
+
+        //面包Id相关UIPanel
+        JPanel huwayIdPanel = new JPanel();
+        JLabel tv_huway_id = new JLabel("HuwayID:");
+        JLabel tv_huway_place = new JLabel("地点:");
+        huwayIdPanel.add(tv_huway_id);
+        huwayIdPanel.add(et_huway_id);
+        huwayIdPanel.add(tv_huway_place);
+        huwayIdPanel.add(et_huway_place);
+        huwayIdPanel.add(btn_huway_go);
+        box_left.add(huwayIdPanel);
 
         //乐去Id相关UIPanel
         JPanel topicIdPanel = new JPanel();
@@ -75,26 +107,7 @@ public class BreadTrip2FunJoyActivity {
         btn_open.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-
-                //判断当前系统是否支持Java AWT Desktop扩展
-                if (Desktop.isDesktopSupported()) {
-                    try {
-                        //创建一个URI实例,注意不是URL
-
-                        //http://www.huway.com/travels/topicId
-                        java.net.URI uri = java.net.URI.create("http://www.huway.com/travels/" + tf_lequ_id.getText());
-                        //获取当前系统桌面扩展
-                        Desktop dp = Desktop.getDesktop();
-                        //判断系统桌面是否支持要执行的功能
-                        if (dp.isSupported(Desktop.Action.BROWSE)) {
-                            //获取系统默认浏览器打开链接
-                            dp.browse(uri);
-                        }
-                    } catch (NullPointerException | IOException ex) {
-                        //此为uri为空时抛出异常
-                        ex.printStackTrace();
-                    }
-                }
+                openBrowserWithUrl("http://www.huway.com/travels/" + tf_lequ_id.getText());
             }
         });
         box_left.add(topicIdPanel);
@@ -198,6 +211,7 @@ public class BreadTrip2FunJoyActivity {
 
 
         et_bread_id.setText("2387991298");
+        et_huway_id.setText("3007066");
 
 
         //  tf_login_acc.setText("huway");
@@ -216,7 +230,13 @@ public class BreadTrip2FunJoyActivity {
                 getBreadTripBean(et_bread_id.getText().toString());
             }
         });
-
+        btn_huway_go.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                addLog("正在拉取Huway 游记Id:" + et_huway_id.getText());
+                getHuwayTripBean();
+            }
+        });
         btn_goon.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -231,7 +251,6 @@ public class BreadTrip2FunJoyActivity {
             }
         });
 
-        initHeader();
     }
 
     private void initHeader() {
@@ -255,13 +274,12 @@ public class BreadTrip2FunJoyActivity {
         toUploadImg(contentBeanList.get(index).getImages(), false);
     }
 
-    private void getBreadTripBean(String id) {
-        if (!start) {
-            start = true;
-        } else {
-            return;
-        }
+    private void getHuwayTripBean() {
+        String URL = "http://bbs.huway.com/thread/" + et_huway_id.getText() + "/1/1.html";
+        Spider.create(this).addUrl(URL).addPipeline(new JsonFilePipeline("./")).run();
+    }
 
+    private void getBreadTripBean(String id) {
         if (breadTripBean != null) return;
         addLog("正在拉取Id为" + id + "的游记");
         DhNet net = new DhNet("http://api.breadtrip.com/trips/" + id + "/waypoints/");
@@ -337,27 +355,30 @@ public class BreadTrip2FunJoyActivity {
                     et_topic_id.setText(topicId);
                     addLog("创建游记头成功" + topicId);
 
-                    for (BreadTripBean.DaysEntity daysEntity : breadTripBean.getDays()) {
-                        for (BreadTripBean.DaysEntity.WaypointsEntity waypointsEntity : daysEntity.getWaypoints()) {
-                            String content = waypointsEntity.getText();
-                            int date = waypointsEntity.getDate_added();
-                            String imgUrl = waypointsEntity.getPhoto_w640();
-                            int w = 960, h = 540;
-                            if (waypointsEntity.getPhoto_info() != null) {
-                                w = waypointsEntity.getPhoto_info().getW();
-                                h = waypointsEntity.getPhoto_info().getH();
-                            }
+                    if (breadTripBean.getDays() != null) {
+                        for (BreadTripBean.DaysEntity daysEntity : breadTripBean.getDays()) {
+                            for (BreadTripBean.DaysEntity.WaypointsEntity waypointsEntity : daysEntity.getWaypoints()) {
+                                String content = waypointsEntity.getText();
+                                int date = waypointsEntity.getDate_added();
+                                String imgUrl = waypointsEntity.getPhoto_w640();
+                                int w = 960, h = 540;
+                                if (waypointsEntity.getPhoto_info() != null) {
+                                    w = waypointsEntity.getPhoto_info().getW();
+                                    h = waypointsEntity.getPhoto_info().getH();
+                                }
 
-                            TravelContentBean travelContentBean = new TravelContentBean();
-                            travelContentBean.setTravels_id(topicId);
-                            travelContentBean.setContent(content);
-                            travelContentBean.setDate(date);
-                            travelContentBean.setImages(imgUrl);
-                            travelContentBean.setImage_width(w);
-                            travelContentBean.setImage_height(h);
-                            contentBeanList.add(travelContentBean);
+                                TravelContentBean travelContentBean = new TravelContentBean();
+                                travelContentBean.setTravels_id(topicId);
+                                travelContentBean.setContent(content);
+                                travelContentBean.setDate(date);
+                                travelContentBean.setImages(imgUrl);
+                                travelContentBean.setImage_width(w);
+                                travelContentBean.setImage_height(h);
+                                contentBeanList.add(travelContentBean);
+                            }
                         }
                     }
+
                     index = 0;
                     toUploadImg(contentBeanList.get(index).getImages(), false);
                 } else {
@@ -439,8 +460,6 @@ public class BreadTrip2FunJoyActivity {
 
     /**
      * 获取项目缓存文件
-     *
-     * @return
      */
     private File getCacheDir() {
         File file = new File(getDir().getAbsolutePath() + "/imageCache");
@@ -452,8 +471,6 @@ public class BreadTrip2FunJoyActivity {
 
     /***
      * 获取项目文件夹
-     *
-     * @return
      */
     private File getDir() {
         File dir = new File("/Users/huway_iosdev2/Desktop/");
@@ -469,9 +486,7 @@ public class BreadTrip2FunJoyActivity {
             public void doInUI(Response response, Integer transfer) {
                 if (response.isSuccess()) {
                     addLog("搬运成功");
-                    //http://www.huway.com/travels/topicId
                     tf_lequ_id.setText(topicId);
-                    start = false;
                 } else {
                     showToast(response.getMsg());
                 }
@@ -525,7 +540,7 @@ public class BreadTrip2FunJoyActivity {
                                 String title = breadTripBean.getName();
                                 String locate = breadTripBean.getCity();
                                 addLog("题目:" + title + "   地点:" + locate + ids);
-                                if (TextUtils.isEmpty(locate) && breadTripBean.getCities().size() > 0) {
+                                if (TextUtils.isEmpty(locate) && breadTripBean.getCities() != null && breadTripBean.getCities().size() > 0) {
                                     locate = breadTripBean.getCities().get(0);
                                 }
                                 onCreateEvent(title, locate, imgId);
@@ -558,6 +573,28 @@ public class BreadTrip2FunJoyActivity {
             toUploadImg(contentBeanList.get(index).getImages(), false);
         } else {
             postIds();
+        }
+    }
+
+    private void openBrowserWithUrl(String url) {
+        //判断当前系统是否支持Java AWT Desktop扩展
+        if (Desktop.isDesktopSupported()) {
+            try {
+                //创建一个URI实例,注意不是URL
+
+                //http://www.huway.com/travels/topicId
+                java.net.URI uri = java.net.URI.create(url);
+                //获取当前系统桌面扩展
+                Desktop dp = Desktop.getDesktop();
+                //判断系统桌面是否支持要执行的功能
+                if (dp.isSupported(Desktop.Action.BROWSE)) {
+                    //获取系统默认浏览器打开链接
+                    dp.browse(uri);
+                }
+            } catch (NullPointerException | IOException ex) {
+                //此为uri为空时抛出异常
+                ex.printStackTrace();
+            }
         }
     }
 
@@ -594,5 +631,106 @@ public class BreadTrip2FunJoyActivity {
                 downloader.unregisterCallBack(DOWNLOAD_IMG_CODE);
             }
         });
+    }
+
+
+    /**
+     * Huway Travles Start
+     */
+    @Override
+    public void process(Page page) {
+        try {
+            // 出发日期
+            long startDateTime = System.currentTimeMillis() / 1000;
+            String dateStartStr;
+            if (page.getHtml().css("div.forumListHeader").css("span").all().size() > 0) {
+                dateStartStr = page.getHtml().css("div.forumListHeader").css("span").all().get(1);
+                Document docDate = Jsoup.parse(dateStartStr);
+                String dateStart = docDate.getElementsByTag("span").html();
+                SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+                Date startDate = df.parse(dateStart); // 出发的第一天
+                startDateTime = startDate.getTime() / 1000;
+            }
+            // 大图
+            String bannderImage = page.getHtml().css("p").css("img").all().get(0);
+            Document docBannerImage = Jsoup.parse(bannderImage);
+            String bannerImage = docBannerImage.getElementsByTag("img").attr("src");
+
+            // 大标题
+            String topTitleHtml = page.getHtml().css("h2").all().get(0);
+            Document docTitle = Jsoup.parse(topTitleHtml);
+            String topTitle = docTitle.body().getElementsByTag("h2").html();
+
+            // 每一个分页内容
+            List<String> allContent = page.getHtml().css("p").all();
+
+            int w = 960, h = 540;
+
+            for (int i = 0; i < allContent.size(); i++) {
+                String strText = allContent.get(i);
+                Document p = Jsoup.parse(strText);
+                String content = p.body().getElementsByTag("span").html();
+                String imgUrl = p.body().getElementsByAttribute("src").attr("src");
+
+                if (content.startsWith("<img src=")) {
+                    content = "";
+                }
+                if (TextUtils.isEmpty(content) && TextUtils.isEmpty(imgUrl)) continue;
+
+
+//                if (contentBeanList.size() > 0 && (contentBeanList.get(contentBeanList.size() - 1).getContent().equals(content) ||
+//                        contentBeanList.get(contentBeanList.size() - 1).getImages().equals(imgUrl))) continue;
+//                if ((TextUtils.isEmpty(content) && !TextUtils.isEmpty(imgUrl))
+//
+//                        || (!TextUtils.isEmpty(content) && TextUtils.isEmpty(imgUrl))
+//
+//                        && (i + 1 < allContent.size())) {
+//
+//                    String strTextNext = allContent.get(i + 1);
+//                    Document pNext = Jsoup.parse(strTextNext);
+//                    String contentNext = pNext.body().getElementsByTag("span").html();
+//                    String imgUrlNext = pNext.body().getElementsByAttribute("src").attr("src");
+//
+//                    if (contentNext.startsWith("<img src=")  ) {
+//                        contentNext = "";
+//                    }
+//
+//                    if (!TextUtils.isEmpty(contentNext) && TextUtils.isEmpty(content)) {
+//                        content = contentNext;
+//                    }
+//
+//                    if (!TextUtils.isEmpty(imgUrlNext) && TextUtils.isEmpty(imgUrl)) {
+//                        imgUrl = imgUrlNext;
+//                    }
+//                }
+
+                content = content.replace("<br />", "").replace("&nbsp;", "");
+                TravelContentBean travelContentBean = new TravelContentBean();
+                travelContentBean.setTravels_id("");
+                travelContentBean.setContent(content);
+                travelContentBean.setImages(imgUrl);
+                travelContentBean.setDate(startDateTime);
+                travelContentBean.setImage_width(w);
+                travelContentBean.setImage_height(h);
+                contentBeanList.add(travelContentBean);
+            }
+
+            addLog("拉取完毕:" + topTitle + " 共" + contentBeanList.size() + "条");
+            breadTripBean = new BreadTripBean();
+            breadTripBean.setCover_image(bannerImage);
+            breadTripBean.setName(topTitle);
+            breadTripBean.setCity(et_huway_place.getText());
+            toUploadImg(breadTripBean.getCover_image(), true);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            addLog("错误" + e.getMessage());
+        }
+    }
+
+
+    @Override
+    public Site getSite() {
+        return site;
     }
 }

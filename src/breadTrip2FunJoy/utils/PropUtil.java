@@ -1,4 +1,4 @@
-package breadTrip2FunJoy;
+package breadTrip2FunJoy.utils;
 
 import org.apache.http.util.TextUtils;
 
@@ -8,8 +8,27 @@ import java.util.Properties;
 
 public class PropUtil {
 
-    public static final File dbFile = new File("lq.properties");
-    private static final String filePath = dbFile.getAbsolutePath();
+    public static File dbFile = null;
+    private static String filePath;
+
+    public static void createPropertiesFile() {
+        String projectPath = MyPath.getProjectPath();
+        dbFile = new File(projectPath + "/lq.properties");
+        if (!dbFile.exists()) {
+            try {
+                dbFile.createNewFile();
+                filePath = dbFile.getAbsolutePath();
+                writeProperties("acc", "13771925115");
+                writeProperties("pwd", "changer");
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+            filePath = dbFile.getAbsolutePath();
+        }
+    }
+
 
     //根据key读取value
     public static String readValue(String key) {

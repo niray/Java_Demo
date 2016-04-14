@@ -16,5 +16,15 @@
     <orderEntry type="library" name="gson-2.3.1" level="project" />
     <orderEntry type="library" name="json" level="project" />
     <orderEntry type="library" name="commons-logging-1.2" level="project" />
+    <orderEntry type="library" name="jsoup-1.7.2" level="project" />
+    <orderEntry type="library" name="webmagic-core-0.5.2" level="project" />
+    <orderEntry type="library" name="xsoup-0.2.4" level="project" />
+    <orderEntry type="library" name="guava-15.0" level="project" />
+    <orderEntry type="library" name="guava-15.0 (2)" level="project" />
+    <orderEntry type="library" name="slf4j-log4j12-1.7.6" level="project" />
+    <orderEntry type="library" name="slf4j-api-1.7.6" level="project" />
+    <orderEntry type="library" name="log4j-1.2.17" level="project" />
+    <orderEntry type="library" name="commons-pool-1.5.5" level="project" />
+    <orderEntry type="library" name="fastjson-1.1.37" level="project" />
   </component>
 </module>

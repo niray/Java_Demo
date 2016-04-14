@@ -1,4 +1,4 @@
-package breadTrip2FunJoy;
+package breadTrip2FunJoy.bean;
 
 import java.io.Serializable;
 

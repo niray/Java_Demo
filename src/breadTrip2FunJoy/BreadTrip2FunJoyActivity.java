@@ -9,6 +9,7 @@ import breadTrip2FunJoy.net.download.DownLoadManager;
 import breadTrip2FunJoy.net.download.DownloadTask;
 import breadTrip2FunJoy.utils.API;
 import breadTrip2FunJoy.utils.PropUtil;
+import html2lequ.HtmlRegexpUtil;
 import org.apache.http.util.TextUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -703,7 +704,7 @@ public class BreadTrip2FunJoyActivity implements PageProcessor {
 //                        imgUrl = imgUrlNext;
 //                    }
 //                }
-
+                content = HtmlRegexpUtil.filterHtml(content);
                 content = content.replace("<br />", "").replace("&nbsp;", "");
                 TravelContentBean travelContentBean = new TravelContentBean();
                 travelContentBean.setTravels_id("");

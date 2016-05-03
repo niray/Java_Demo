@@ -100,7 +100,7 @@ public class BreadTrip2FunJoyActivity implements PageProcessor {
         //乐去Id相关UIPanel
         JPanel topicIdPanel = new JPanel();
         JLabel tv_lequ_id = new JLabel("乐去ID:");
-        tf_lequ_id.setText("19");
+        tf_lequ_id.setText("");
         JButton btn_open = new JButton("查看");
         topicIdPanel.add(tv_lequ_id);
         topicIdPanel.add(tf_lequ_id);
@@ -211,8 +211,8 @@ public class BreadTrip2FunJoyActivity implements PageProcessor {
         frame.setVisible(true);
 
 
-        et_bread_id.setText("2387991298");
-        et_huway_id.setText("3007066");
+        et_bread_id.setText("");
+        et_huway_id.setText("");
 
 
         //  tf_login_acc.setText("huway");
@@ -310,19 +310,24 @@ public class BreadTrip2FunJoyActivity implements PageProcessor {
             @Override
             public void doInUI(Response response, Integer transfer) {
                 super.doInUI(response, transfer);
-                String token = JSONUtil.getString(response.jSONFrom("userInfo"), "token");
-                String nickName = JSONUtil.getString(response.jSONFrom("userInfo"), "nickname");
+                if (response.isSuccess()) {
 
-                PropUtil.writeProperties("acc", tf_login_acc.getText());
-                PropUtil.writeProperties("pwd", tf_login_pwd.getText());
-                PropUtil.writeProperties("nick", nickName);
-                PropUtil.writeProperties("token", token);
+                    String token = JSONUtil.getString(response.jSONFrom("userInfo"), "token");
+                    String nickName = JSONUtil.getString(response.jSONFrom("userInfo"), "nickname");
 
-                tf_nick.setText(nickName);
-                tf_token.setText(token);
+                    PropUtil.writeProperties("acc", tf_login_acc.getText());
+                    PropUtil.writeProperties("pwd", tf_login_pwd.getText());
+                    PropUtil.writeProperties("nick", nickName);
+                    PropUtil.writeProperties("token", token);
 
-                addLog(nickName + " 登陆成功");
-                initHeader();
+                    tf_nick.setText(nickName);
+                    tf_token.setText(token);
+
+                    addLog(nickName + " 登陆成功");
+                    initHeader();
+                } else {
+                    addLog(" 登陆失败:" + response.getMsg());
+                }
             }
         });
     }
@@ -648,6 +653,7 @@ public class BreadTrip2FunJoyActivity implements PageProcessor {
                 dateStartStr = page.getHtml().css("div.forumListHeader").css("span").all().get(1);
                 Document docDate = Jsoup.parse(dateStartStr);
                 String dateStart = docDate.getElementsByTag("span").html();
+                dateStart = HtmlRegexpUtil.filterHtml(dateStart);
                 SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
                 Date startDate = df.parse(dateStart); // 出发的第一天
                 startDateTime = startDate.getTime() / 1000;
@@ -671,6 +677,9 @@ public class BreadTrip2FunJoyActivity implements PageProcessor {
                 String strText = allContent.get(i);
                 Document p = Jsoup.parse(strText);
                 String content = p.body().getElementsByTag("span").html();
+                if (TextUtils.isEmpty(content)) {
+                    content = p.body().getElementsByTag("p").html();
+                }
                 String imgUrl = p.body().getElementsByAttribute("src").attr("src");
 
                 if (content.startsWith("<img src=")) {

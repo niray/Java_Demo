@@ -202,7 +202,6 @@ public class BreadTrip2FunJoyActivity implements PageProcessor {
         resumePanel.add(btn_goon);
         box_right.add(resumePanel);
 
-
         frame.setSize(800, 600);
 
         frame.add(box_left, BorderLayout.WEST);
@@ -558,7 +557,6 @@ public class BreadTrip2FunJoyActivity implements PageProcessor {
                 } catch (Exception e) {
                     e.printStackTrace();
                     addLog("错误" + e.getMessage());
-
                 }
             }
 

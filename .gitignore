@@ -1,1 +1,12 @@
 # Created by .ignore support plugin (hsz.mobi)
+.idea
+.out
+.idea/vcs.xml
+.idea/workspace.xml
+bbs.huway.com/
+java_demo.properties
+java_demo.xml
+java_demo_Tue_Apr_12_21-00-14_CST_2016.xml
+module_java_demo.xml
+module_java_demo_Tue_Apr_12_21-00-14_CST_2016.xml
+out/
